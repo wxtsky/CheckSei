@@ -10,24 +10,34 @@ function App() {
     const [data, setdata] = useState([]);
     const [input, setInput] = useState('');
     const check = async () => {
-        setdata([])
+        setdata([]);
         const arr = input.split('\n');
         for (let i = 0; i < arr.length; i++) {
             const address = arr[i];
             if (address === '') {
                 continue;
             }
-            try {
-                const url = "https://pacific-1.albatross.sei-internal.com/eligibility?originAddress=" + address.toLowerCase();
-                const res = await axios.get(url);
+            const url = "https://pacific-1.albatross.sei-internal.com/eligibility?originAddress=" + address.toLowerCase();
+            let success = false;
+            let attempts = 0;
+            while (attempts < 3 && !success) {
+                try {
+                    const res = await axios.get(url);
+                    setdata(prevData => [...prevData, {
+                        address: address,
+                        isEligible: res.data.status,
+                        chainId: res.data.data.chainId
+                    }]);
+                    success = true;
+                } catch (e) {
+                    attempts++;
+                }
+            }
+            if (!success) {
                 setdata(prevData => [...prevData, {
                     address: address,
-                    isEligible: res.data.status
-                }]);
-            } catch (e) {
-                setdata(prevData => [...prevData, {
-                    address: address,
-                    isEligible: 'error'
+                    isEligible: 'error',
+                    chainId: '-'
                 }]);
             }
         }
@@ -52,6 +62,11 @@ function App() {
                     return <span style={{color: 'red'}}>获取失败</span>
                 }
             }
+        },
+        {
+            title: '链ID',
+            dataIndex: 'chainId',
+            key: 'chainId',
         }
     ]
     return (
