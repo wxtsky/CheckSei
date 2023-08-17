@@ -99,9 +99,11 @@ function App() {
             title: '刷新',
             key: 'refresh',
             render: (text, record, index) => (
-                <Button type="primary" onClick={() => refreshRow(record.address, index)}>
-                    刷新
-                </Button>
+                record.isEligible === 'error' ? (
+                    <Button type="primary" onClick={() => refreshRow(record.address, index)}>
+                        刷新
+                    </Button>
+                ) : null
             ),
         }
     ];
@@ -128,12 +130,15 @@ function App() {
             <Card style={{width: '80%', marginBottom: '20px'}}>
                 {loading && <div style={{textAlign: 'center'}}><Spin tip="查询中..."/></div>}
                 <TextArea
-                    rows={4}
+
                     placeholder="输入你的EVM地址一行一个"
                     onChange={(e) => {
                         setInput(e.target.value);
                     }}
                     value={input}
+                    style={{
+                        height: 250,
+                    }}
                 />
                 <Space style={{margin: '10px 0', justifyContent: 'flex-end'}}>
                     <Button type="primary" onClick={check} disabled={loading}>
