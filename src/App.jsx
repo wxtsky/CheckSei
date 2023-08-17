@@ -2,6 +2,7 @@ import './App.css';
 import {Button, Input, Space, Table, Card, Typography, Spin, message} from 'antd';
 import {useState} from 'react';
 import axios from 'axios';
+import {TwitterOutlined} from '@ant-design/icons';
 
 const {TextArea} = Input;
 const {Title} = Typography;
@@ -108,6 +109,22 @@ function App() {
     return (
         <div style={{padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             <Title level={2}>Sei 空投资格EVM地址查询</Title>
+            <a href="https://twitter.com/jingluo0"
+               target="_blank"
+               rel="noreferrer"
+               style={{
+                   display: 'flex',
+                   alignItems: 'center',
+                   fontSize: '18px',
+                   color: '#1DA1F2',
+                   marginBottom: '20px',
+                   textDecoration: 'none',
+                   transition: 'color 0.3s',
+               }}
+            >
+                <TwitterOutlined style={{fontSize: '24px', marginRight: '8px'}}/>
+                有需要帮忙找弟弟，给你安排到位。
+            </a>
             <Card style={{width: '80%', marginBottom: '20px'}}>
                 {loading && <div style={{textAlign: 'center'}}><Spin tip="查询中..."/></div>}
                 <TextArea
