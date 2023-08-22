@@ -1,11 +1,11 @@
 import './App.css';
-import {Button, Input, Space, Table, Card, Typography, Spin, message} from 'antd';
+import {Button, Input, Space, Table, Card, Typography, Spin, message, Tag} from 'antd';
 import {useState} from 'react';
 import axios from 'axios';
 import {TwitterOutlined} from '@ant-design/icons';
 
 const {TextArea} = Input;
-const {Title} = Typography;
+const {Title, Text} = Typography;
 
 function App() {
     const [data, setData] = useState([]);
@@ -51,7 +51,8 @@ function App() {
                     setData(prevData => [...prevData, {
                         address: address,
                         isEligible: res.data.status,
-                        chainId: res.data.data.chainId
+                        chainId: res.data.data.chainId,
+                        isBind: res.data.data['seiAddress'] ? res.data.data['seiAddress'] : '否'
                     }]);
                     success = true;
                 } catch (e) {
@@ -91,25 +92,37 @@ function App() {
             }
         },
         {
-            title: '链ID',
+            title: '链',
             dataIndex: 'chainId',
             key: 'chainId',
         },
         {
-            title: '刷新',
+            title: '是否已绑定sei地址',
+            dataIndex: 'isBind',
+            key: 'isBind',
+            render: (text) => {
+                if (text === "否") {
+                    return <span style={{color: 'red'}}>否</span>
+                } else {
+                    return <Text copyable style={{color: 'green'}}>{text}</Text>
+                }
+            }
+        },
+        {
+            title: '报错刷新',
             key: 'refresh',
             render: (text, record, index) => (
                 record.isEligible === 'error' ? (
                     <Button type="primary" onClick={() => refreshRow(record.address, index)}>
                         刷新
                     </Button>
-                ) : null
+                ) : <Tag color="green-inverse">获取正常</Tag>
             ),
         }
     ];
 
     return (
-        <div style={{padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <div style={{padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             <Title level={2}>Sei 空投资格EVM地址查询</Title>
             <a href="https://twitter.com/jingluo0"
                target="_blank"
@@ -125,9 +138,9 @@ function App() {
                }}
             >
                 <TwitterOutlined style={{fontSize: '24px', marginRight: '8px'}}/>
-                有需要帮忙找弟弟，给你安排到位。
+                有没有大佬dddd。
             </a>
-            <Card style={{width: '80%', marginBottom: '20px'}}>
+            <Card style={{width: '80%', marginBottom: '10px'}}>
                 {loading && <div style={{textAlign: 'center'}}><Spin tip="查询中..."/></div>}
                 <TextArea
 
@@ -137,12 +150,14 @@ function App() {
                     }}
                     value={input}
                     style={{
-                        height: 250,
+                        height: 200,
                     }}
                 />
                 <Space style={{margin: '10px 0', justifyContent: 'flex-end'}}>
-                    <Button type="primary" onClick={check} disabled={loading}>
-                        查询
+                    <Button type="primary" onClick={check} loading={loading}>
+                        {
+                            loading ? '查询中...' : '查询'
+                        }
                     </Button>
                     <Button type="default" onClick={() => {
                         setData([]);
@@ -152,7 +167,7 @@ function App() {
                 </Space>
             </Card>
             <Card style={{width: '80%'}}>
-                <Table dataSource={data} columns={columns} size="small" pagination={false}/>
+                <Table bordered dataSource={data} columns={columns} size="small" pagination={false}/>
             </Card>
         </div>
     );
