@@ -76,6 +76,7 @@ function App() {
             title: 'EVM地址',
             dataIndex: 'address',
             key: 'address',
+            render: (text) => <Text copyable>{text}</Text>
         },
         {
             title: '是否符合资格',
