@@ -101,11 +101,15 @@ function App() {
             title: '是否已绑定sei地址',
             dataIndex: 'isBind',
             key: 'isBind',
-            render: (text) => {
-                if (text === "否") {
-                    return <span style={{color: 'red'}}>否</span>
+            render: (text, record) => {
+                if (record.isEligible === 'error') {
+                    return <span style={{color: 'red'}}>获取失败</span>
                 } else {
-                    return <Text copyable style={{color: 'green'}}>{text}</Text>
+                    if (text === "否") {
+                        return <span style={{color: 'red'}}>否</span>
+                    } else {
+                        return <Text copyable style={{color: 'green'}}>{text}</Text>
+                    }
                 }
             }
         },
