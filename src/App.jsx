@@ -1,5 +1,5 @@
 import './App.css';
-import {Button, Input, Space, Table, Card, Typography, Spin, message, Tag} from 'antd';
+import {Button, Input, Space, Table, Card, Typography, message, Tag} from 'antd';
 import {useState} from 'react';
 import axios from 'axios';
 import {TwitterOutlined} from '@ant-design/icons';
@@ -11,28 +11,6 @@ function App() {
     const [data, setData] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const refreshRow = async (address, index) => {
-        const url = "https://pacific-1.albatross.sei-internal.com/eligibility?originAddress=" + address.toLowerCase();
-        try {
-            const res = await axios.get(url);
-            const updatedData = [...data];
-            updatedData[index] = {
-                address: address,
-                isEligible: res.data.status,
-                chainId: res.data.data.chainId
-            };
-            setData(updatedData);
-        } catch (e) {
-            const updatedData = [...data];
-            updatedData[index] = {
-                address: address,
-                isEligible: 'error',
-                chainId: '-'
-            };
-            setData(updatedData);
-        }
-    };
-
     const check = async () => {
         setLoading(true);
         setData([]);
@@ -48,11 +26,37 @@ function App() {
             while (attempts < 3 && !success) {
                 try {
                     const res = await axios.get(url);
+                    const isBind = res.data.data['seiAddress'] ? res.data.data['seiAddress'] : '否';
+                    let crossAmount = 0;
+                    if (isBind) {
+                        const url = "https://pacific-1.albatross.sei-internal.com/connected?seiAddress=" + isBind.toLowerCase();
+                        const res = await axios.get(url);
+                        const data = res.data;
+                        if (data.status !== "success") {
+                            crossAmount = '获取失败';
+                        } else {
+                            if (data.data['lootbox']) {
+                                const opened = data.data['lootbox']['opened'];
+                                const amount = data.data['lootbox']['amount'];
+                                if (opened) {
+                                    crossAmount = '已开盒' + Number(amount / 10 ** 6).toFixed(0)
+                                } else {
+                                    crossAmount = '未开';
+                                }
+                            } else {
+                                if (data.data['tx']) {
+                                    const {usdValue} = data.data['tx'];
+                                    crossAmount = usdValue;
+                                }
+                            }
+                        }
+                    }
                     setData(prevData => [...prevData, {
                         address: address,
                         isEligible: res.data.status,
                         chainId: res.data.data.chainId,
-                        isBind: res.data.data['seiAddress'] ? res.data.data['seiAddress'] : '否'
+                        isBind: res.data.status === "fail" ? null : res.data.data['seiAddress'] ? res.data.data['seiAddress'] : '否',
+                        crossAmount: res.data.status === "fail" ? null : crossAmount
                     }]);
                     success = true;
                 } catch (e) {
@@ -107,8 +111,26 @@ function App() {
                 } else {
                     if (text === "否") {
                         return <span style={{color: 'red'}}>否</span>
-                    } else {
+                    } else if (text) {
                         return <Text copyable style={{color: 'green'}}>{text}</Text>
+                    } else if (text === null) {
+                        return null;
+                    }
+                }
+            }
+        },
+        {
+            title: '跨链金额',
+            dataIndex: 'crossAmount',
+            key: 'crossAmount',
+            render: (text, record) => {
+                if (record.isEligible === 'error') {
+                    return <span style={{color: 'red'}}>获取失败</span>
+                } else {
+                    if (record.isBind === "否") {
+                        return <span style={{color: 'red'}}>无</span>
+                    } else {
+                        return <span style={{color: 'green'}}>{text}</span>
                     }
                 }
             }
@@ -116,11 +138,9 @@ function App() {
         {
             title: '报错刷新',
             key: 'refresh',
-            render: (text, record, index) => (
+            render: (text, record) => (
                 record.isEligible === 'error' ? (
-                    <Button type="primary" onClick={() => refreshRow(record.address, index)}>
-                        刷新
-                    </Button>
+                    <Tag color="red-inverse">获取正常</Tag>
                 ) : <Tag color="green-inverse">获取正常</Tag>
             ),
         }
@@ -146,9 +166,7 @@ function App() {
                 有没有大佬dddd。
             </a>
             <Card style={{width: '80%', marginBottom: '10px'}}>
-                {loading && <div style={{textAlign: 'center'}}><Spin tip="查询中..."/></div>}
                 <TextArea
-
                     placeholder="输入你的EVM地址一行一个"
                     onChange={(e) => {
                         setInput(e.target.value);
