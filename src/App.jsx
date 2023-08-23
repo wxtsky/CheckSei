@@ -39,7 +39,7 @@ function App() {
                                 const opened = data.data['lootbox']['opened'];
                                 const amount = data.data['lootbox']['amount'];
                                 if (opened) {
-                                    crossAmount = '已开盒' + Number(amount / 10 ** 6).toFixed(0)
+                                    crossAmount = '已开盒' + '(' + Number(amount / 10 ** 6).toFixed(0) + ')';
                                 } else {
                                     crossAmount = '未开';
                                 }
